@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "API de autenticação e geração de tokens JWT")
+@Slf4j
 public class AuthController {
     
     private final AuthenticationManager authenticationManager;
@@ -60,7 +63,7 @@ public class AuthController {
                     required = true
             )
             @Valid @RequestBody LoginRequest loginRequest) {
-        
+        log.info("Attempting login for user: {}", loginRequest.getUsername());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -70,10 +73,12 @@ public class AuthController {
             );
             
             String token = jwtTokenProvider.generateToken(authentication.getName());
+            log.info("Generated token for user: {}", authentication.getName());
             
             return ResponseEntity.ok(new AuthResponse(token, authentication.getName()));
             
         } catch (AuthenticationException e) {
+                log.error("Authentication failed for user: {}", loginRequest.getUsername());
             return ResponseEntity.status(401)
                     .body("Invalid username or password");
         }

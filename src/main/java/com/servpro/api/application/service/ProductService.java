@@ -4,6 +4,8 @@ import com.servpro.api.domain.model.Product;
 import com.servpro.api.domain.port.in.ProductUseCase;
 import com.servpro.api.domain.port.out.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +20,14 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ProductService implements ProductUseCase {
     
     private final ProductRepository productRepository;
     
     @Override
     public Product createProduct(Product product) {
+        log.info("Creating product: {}", product);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
         return productRepository.save(product);
@@ -32,17 +36,20 @@ public class ProductService implements ProductUseCase {
     @Override
     @Transactional(readOnly = true)
     public Optional<Product> findById(Long id) {
+        log.info("Finding product by id: {}", id);
         return productRepository.findById(id);
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<Product> findAll() {
+        log.info("Finding all products");
         return productRepository.findAll();
     }
     
     @Override
     public Product updateProduct(Long id, Product product) {
+        log.info("Updating product with id: {}", id);
         return productRepository.findById(id)
                 .map(existingProduct -> {
                     existingProduct.setName(product.getName());
@@ -57,7 +64,9 @@ public class ProductService implements ProductUseCase {
     
     @Override
     public void deleteProduct(Long id) {
+        log.info("Deleting product with id: {}", id);
         if (!productRepository.existsById(id)) {
+            log.error("Product not found with id: {}", id);
             throw new RuntimeException("Product not found with id: " + id);
         }
         productRepository.deleteById(id);
@@ -65,6 +74,7 @@ public class ProductService implements ProductUseCase {
     
     @Override
     public Product updateStock(Long id, Integer quantity) {
+        log.info("Updating stock for product id: {} by quantity: {}", id, quantity);
         return productRepository.findById(id)
                 .map(product -> {
                     if (quantity > 0) {

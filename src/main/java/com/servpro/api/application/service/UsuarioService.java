@@ -1,8 +1,10 @@
 package com.servpro.api.application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,20 +22,28 @@ import lombok.extern.slf4j.Slf4j;
 public class UsuarioService implements IUsuarioUseCase {
   
   private final IUsuarioRepository usuarioRepository;
+  private final PasswordEncoder passwordEncoder;
 
   @Override
   public Usuario salvarUsuario(Usuario usuario) {
+    usuario.setCreatedAt(LocalDateTime.now());
+    usuario.setUpdatedAt(LocalDateTime.now());
+    usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+    usuario.setEnabled(true);
+    usuario.setRoles("USER");
     log.info("Saving user: {}", usuario);
     return usuarioRepository.save(usuario);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<Usuario> buscarPorUsername(String username) {
     log.info("Finding user by username: {}", username);
     return usuarioRepository.findByUsername(username);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<Usuario> listarUsuarios() {
     log.info("Listing all users");
     return usuarioRepository.findAll();
@@ -46,7 +56,8 @@ public class UsuarioService implements IUsuarioUseCase {
             .map(existingUsuario -> {
                 existingUsuario.setUsername(usuario.getUsername());
                 existingUsuario.setEmail(usuario.getEmail());
-                existingUsuario.setPassword(usuario.getPassword());
+                existingUsuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+                existingUsuario.setUpdatedAt(LocalDateTime.now());
                 return usuarioRepository.save(existingUsuario);
             })
             .orElseThrow(() -> new RuntimeException("User not found with username: " + username));

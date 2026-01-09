@@ -21,7 +21,6 @@ import jakarta.validation.Valid;
 
 @Tag(name = "Products", description = "API para gerenciamento de produtos")
 public interface ProductSwagger {
-  
     @Operation(
             summary = "Criar novo produto",
             description = "Cria um novo produto no sistema com as informações fornecidas"

@@ -1,9 +1,12 @@
 package com.servpro.api.infrastructure.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,12 +39,25 @@ public class OpenApiConfig {
         Info info = new Info()
                 .title("ServPro API")
                 .version("1.0.0")
-                .description("API RESTful desenvolvida com arquitetura hexagonal usando Spring Boot 3.4.1 e Java 21")
+                .description("API RESTful desenvolvida com arquitetura hexagonal usando Spring Boot 3.4.1 e Java 21. "
+                        + "Para acessar endpoints protegidos, primeiro faça login em /api/v1/auth/login para obter o token JWT.")
                 .contact(contact)
                 .license(license);
         
+        // JWT Security Scheme
+        SecurityScheme securityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .description("Insira o token JWT obtido no endpoint de login");
+        
+        SecurityRequirement securityRequirement = new SecurityRequirement()
+                .addList("Bearer Authentication");
+        
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(devServer));
+                .servers(List.of(devServer))
+                .components(new Components().addSecuritySchemes("Bearer Authentication", securityScheme))
+                .addSecurityItem(securityRequirement);
     }
 }
